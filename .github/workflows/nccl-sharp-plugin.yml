@@ -13,7 +13,7 @@ jobs:
     runs-on: [self-hosted, linux , x64]
 
     steps:
-    - name: deployment
+    - name: Deployment
       run: /start deploy
     - name: Building NCCL sharp plugin
       run: /start build      
@@ -21,3 +21,5 @@ jobs:
       run: /start sharp
     - name: Running tests of NCCL sharp plugin
       run: /start test
+    - name: Cleaning
+      run: /start clean

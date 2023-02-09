@@ -1,0 +1,22 @@
+name:NCCL Sharp plugin CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: [self-hosted, linux , x64]
+
+    steps:
+    - name: deployment
+      run: /start deploy
+    - name: Building NCCL sharp plugin
+      run: /start build      
+    - name: Configuring and checking sharp
+      run: /start sharp
+    - name: Running tests of NCCL sharp plugin
+      run: /start test

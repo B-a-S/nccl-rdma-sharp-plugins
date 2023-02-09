@@ -1,4 +1,4 @@
-name:NCCL Sharp plugin CI
+name: NCCL Sharp plugin CI
 
 on:
   push:

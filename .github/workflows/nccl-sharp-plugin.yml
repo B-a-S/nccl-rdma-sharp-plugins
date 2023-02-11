@@ -2,11 +2,19 @@ name: NCCL Sharp plugin CI
 
 on:
   workflow_dispatch: 
+    inputs:
+      mainhost:
+        description: 'Choose one of hosts to run:'
+        required: true
+        type: choice
+        default: 'host01'
+        options:
+          - host01
+          - host02
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-
 jobs:
   build:
 

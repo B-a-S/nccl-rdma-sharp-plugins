@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -e /dev/infiniband/umad2 ]
+then
+printf "mlx5_2 port 0 ====> ib0\n"
+fi
+
+if [ -e /dev/infiniband/umad4 ]
+then
+printf "mlx5_4 port 0 ====> ib0\n"
+fi

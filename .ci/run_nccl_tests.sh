@@ -29,17 +29,12 @@ then
 fi
 
 NP=2
-IB_DEV="mlx5_0:1"
-
+IB_DEV=$(ibdev2netdev | awk '{ print $1 }'):1
 # UCX_MEMTYPE_CACHE=n - to avoid warnings "memtype_cache.c:83   UCX  ERROR failed to insert region 0x1a1e890 [0x7f8d00000000..0x7f8d30000000]: Element already exists"
 MPIRUN_OPTIONS_COMMON="\
 -x LD_LIBRARY_PATH \
 -x NCCL_DEBUG=INFO \
--x HCOLL_MAIN_IB=${IB_DEV} \
 -x NCCL_DEBUG_SUBSYS=INIT \
--x NCCL_IB_HCA=${IB_DEV} \
--x NCCL_SOCKET_IFNAME=eno1 \
--x UCX_NET_DEVICES=${IB_DEV} \
 -x UCX_MEMTYPE_CACHE=n \
 -x HCOLL_ENABLE_SHARP=0 \
 -x HCOLL_ENABLE_MCAST_ALL=0 \
@@ -51,6 +46,7 @@ MPIRUN_OPTIONS_COMMON="\
 -np $NP \
 --report-bindings \
 --allow-run-as-root \
+-mca oob_tcp_if_exclude eth0 \
 "
 
 # Application options
@@ -77,6 +73,7 @@ cd "${NCCL_TESTS_DIR}"
 make -j clean
 
 make -j CUDA_HOME="${CUDA_HOME}" NCCL_HOME="${NCCL_DIR}" MPI=1 MPI_HOME="${MPI_HOME}"
+
 
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${NCCL_RDMA_SHARP_PLUGINS_DIR}/lib:${LD_LIBRARY_PATH}"
 
@@ -201,7 +198,7 @@ do
                             fi
 
                             echo_hash_line
-                            echo "# Test $i..."
+                             echo "::group::{# Test $i...}"
                             echo_hash_line
 
                             echo "INFO: TEST                = ${TEST_EXE}"
@@ -220,7 +217,7 @@ do
                                 ${MPIRUN_OPTIONS_GDR_LEVEL} \
                                 ${MPIRUN_OPTIONS_GDR_READ} \
                                 ${MPIRUN_OPTIONS_PLUGIN_P2P_LAYER} \
-                                ${NCCL_TESTS_DIR}/build/${TEST_EXE} ${NCCL_TEST_PARAMS}"
+                                ${WORKSPACE}/.ci/nccl_tests ${NCCL_TESTS_DIR}/build/${TEST_EXE} ${NCCL_TEST_PARAMS}"
                             echo "# Test $i reproducer:"
                             echo "export PATH=${PATH}"
                             echo ""
@@ -231,9 +228,12 @@ do
                             trim_multiple_spaces "$CMD"
                             if ! $CMD
                             then
+echo "::endgroup::"
+echo "::endgroup::"
                                 echo "# Test $i... failed"
                                 GLOBAL_TEST_STATUS=1
                             else
+echo "::endgroup::"
                                 echo "# Test $i... passed"
                             fi
 

@@ -44,6 +44,7 @@ then
     exit 1
 fi
 
+HPCX_SHARP_DIR=/opt/mellanox/sharp
 CONFIGURE_SHARP_TMP_DIR="${NFS_WORKSPACE}/configure_sharp_$$"
 mkdir -p "${CONFIGURE_SHARP_TMP_DIR}"
 chmod o+w "${CONFIGURE_SHARP_TMP_DIR}"
@@ -63,7 +64,7 @@ else
     exit 1
 fi
 
-IB_DEV="mlx5_0"
+IB_DEV=$(/GIT/ibdev2netdev | awk '{ print $1 }'):1
 SM_GUID=`sudo sminfo -C ${IB_DEV} -P1 | awk '{print $7}' | cut -d',' -f1`
 # SM/AM node
 # SM_HOSTNAME=`sudo ibnetdiscover -H -C mlx5_0 -P1  | grep ${SM_GUID} | awk -F'"' '{print $2 }' | awk '{print $1}'`
@@ -146,6 +147,7 @@ verify_sharp() {
         exit 1
     fi
 
+    cp ${WORKSPACE}/.ci/sharp_coll_test_wrapper ./
     ITERS=100
     SKIP=20
     NP=$(wc --lines "$HOSTFILE" | awk '{print $1}')
@@ -157,7 +159,9 @@ verify_sharp() {
         --map-by node \
         -x LD_LIBRARY_PATH \
         --allow-run-as-root \
+	-mca oob_tcp_if_exclude eth0 \
     "
+#	-x UCX_TLS=^sm \
 
     # TODO change to SHARP_COLL_SAT_THRESHOLD=1 (32 - W/A for SHARP issue)
     MPIRUN_SHARP_OPTIONS="\
@@ -174,12 +178,11 @@ verify_sharp() {
 
     # Test 1 (from ${HPCX_SHARP_DIR}/share/sharp/examples/mpi/coll/README):
     # Run allreduce barrier perf test on 2 hosts using port mlx5_0
-    echo "Test 1..."
+     echo "::group::# Test 1..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -193,16 +196,17 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 1... DONE"
 
     # Test 2 (from ${HPCX_SHARP_DIR}/share/sharp/examples/mpi/coll/README):
     # Run allreduce perf test on 2 hosts using port mlx5_0 with CUDA buffers
-    echo "Test 2..."
+     echo "::group::# Test 2..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -217,16 +221,17 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 2... DONE"
 
     # Test 3 (from ${HPCX_SHARP_DIR}/share/sharp/examples/mpi/coll/README):
     # Run allreduce perf test on 2 hosts using port mlx5_0 with Streaming aggregation from 4B to 512MB
-    echo "Test 3..."
+     echo "::group::# Test 3..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -241,16 +246,17 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 3... DONE"
 
     # Test 4:
     # Run iallreduce perf test on 2 hosts using port mlx5_0
-    echo "Test 4..."
+     echo "::group::# Test 4..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -265,16 +271,17 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 4... DONE"
 
     # Test 5:
     # Run iallreduce perf test on 2 hosts using port mlx5_0 with CUDA buffers
-    echo "Test 5..."
+     echo "::group::# Test 5..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -290,16 +297,17 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 5... DONE"
 
     # Test 6:
     # Run iallreduce perf test on 2 hosts using port mlx5_0 with Streaming aggregation from 4B to 512MB
-    echo "Test 6..."
+     echo "::group::# Test 6..."
     CMD="mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             ${MPIRUN_SHARP_OPTIONS} \
-            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test \
-                -d mlx5_0:1 \
+            ${CONFIGURE_SHARP_TMP_DIR}/sharp_coll_test_wrapper \
                 --iters $ITERS \
                 --skip $SKIP \
                 --mode perf \
@@ -315,17 +323,19 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 6... DONE"
 
     # Test 7 (from the SHARP deployment guide): Without SAT
-    echo "Test 7..."
+     echo "::group::# Test 7..."
     CMD="$OMPI_HOME/bin/mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             --bind-to core \
             -mca btl_openib_warn_default_gid_prefix 0 \
-            -mca rmaps_dist_device mlx5_0:1 \
+            -mca rmaps_dist_device ${IB_DEV} \
             -mca rmaps_base_mapping_policy dist:span \
-            -x HCOLL_MAIN_IB=mlx5_0:1 \
+            -x MXM_LOG_LEVEL=ERROR \
             -x HCOLL_ML_DISABLE_REDUCE=1 \
             -x LD_LIBRARY_PATH \
             -x HCOLL_ENABLE_SHARP=2 \
@@ -338,7 +348,7 @@ verify_sharp() {
             -x SHARP_COLL_JOB_QUOTA_OSTS=32 \
             -x SHARP_COLL_JOB_QUOTA_MAX_GROUPS=4 \
             -x SHARP_COLL_JOB_QUOTA_PAYLOAD_PER_OST=256 \
-            taskset -c 1 \
+            ${WORKSPACE}/.ci/taskset -c 1 \
                 numactl --membind=0 \
                     $HPCX_OSU_DIR/osu_allreduce \
                         -i 100 \
@@ -354,16 +364,19 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 7... DONE"
 
     # Test 8 (from the SHARP deployment guide): With SAT
-    echo "Test 8..."
+     echo "::group::# Test 8..."
     CMD="$OMPI_HOME/bin/mpirun \
             ${MPIRUN_COMMON_OPTIONS} \
             -mca btl_openib_warn_default_gid_prefix 0 \
-            -mca rmaps_dist_device mlx5_0:1 \
+            -mca rmaps_dist_device ${IB_DEV} \
             -mca rmaps_base_mapping_policy dist:span \
-            -x HCOLL_MAIN_IB=mlx5_0:1 \
+            -x MXM_ASYNC_INTERVAL=1800s \
+            -x MXM_LOG_LEVEL=ERROR \
             -x HCOLL_ML_DISABLE_REDUCE=1 \
             -x LD_LIBRARY_PATH \
             -x HCOLL_ENABLE_SHARP=2 \
@@ -377,7 +390,7 @@ verify_sharp() {
             -x SHARP_COLL_JOB_QUOTA_MAX_GROUPS=4 \
             -x SHARP_COLL_JOB_QUOTA_PAYLOAD_PER_OST=256 \
             -x SHARP_COLL_ENABLE_SAT=1 \
-            taskset -c 1 \
+            ${WORKSPACE}/.ci/taskset -c 1 \
                 numactl --membind=0 \
                     $HPCX_OSU_DIR/osu_allreduce \
                         -i 100 \
@@ -393,6 +406,8 @@ verify_sharp() {
         echo "FAIL"
         exit 1
     fi
+echo "::endgroup::"
+echo "::endgroup::"
     echo "Test 8... DONE"
 
     echo "INFO: verify_sharp... DONE"

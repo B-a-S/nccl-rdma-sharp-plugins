@@ -7,6 +7,7 @@ with [NVIDIA's NCCL](https://github.com/NVIDIA/nccl) library
 
 ## Requirements
 
+* Brain
 * MOFED
 * CUDA
 * SHARP
